@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="fr">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Mes dossiers — PHAROS Compagnon</title><link rel="icon" href="icons/32.png"><link rel="stylesheet" href="styles.css"></head>
+<body>
+<header class="masthead">
+  <a class="brand" href="dashboard.html"><span class="mark">P</span><span>PHAROS <strong>Compagnon</strong><small>Collecter. Préparer. Décider.</small></span></a>
+  <div class="top-actions"><span class="local-tag"><span></span> Enregistré sur cet ordinateur</span><button id="exportAll" class="secondary">Sauvegarder</button><button id="importBackup" class="quiet">Importer</button><a class="help-link" href="help.html" target="_blank" rel="noopener">Guide ↗</a></div>
+</header>
+<main class="layout">
+  <aside class="collection">
+    <div class="collection-heading"><div><div class="eyebrow">VOTRE ESPACE LOCAL</div><h1>Mes dossiers <span id="count" class="count">0</span></h1></div><button id="new" class="square" title="Créer une fiche manuelle" aria-label="Créer une fiche manuelle">+</button></div>
+    <label class="search-label"><span class="sr-only">Rechercher un dossier</span><input id="search" type="search" placeholder="Rechercher un nom, un contenu…"></label>
+    <label class="filter-label"><span class="sr-only">Filtrer par statut</span><select id="filter"><option value="">Tous les dossiers</option><option value="draft">Brouillons</option><option value="prepared">Préparés</option><option value="reported">Envois déclarés</option><option value="archived">Archives</option></select></label>
+    <div id="list" class="record-list" aria-label="Dossiers collectés"></div>
+    <div class="collection-footer">Extension indépendante<br><span>Votre clic déclenche la collecte.</span></div>
+  </aside>
+  <section class="workspace">
+    <div id="empty" class="empty-state"><div class="empty-symbol">P</div><span class="eyebrow">UNE TRACE, PUIS UNE DÉCISION</span><h2>Préparez votre premier dossier.</h2><p>Sur Facebook, cliquez sur <strong>PHAROS</strong> à côté d’un commentaire. Le texte et les liens apparaîtront ici, prêts à être vérifiés.</p><div class="empty-steps"><span><b>01</b> Collectez au clic</span><span><b>02</b> Vérifiez le contenu</span><span><b>03</b> Validez sur PHAROS</span></div><button id="emptyNew" class="primary">Créer une fiche manuelle</button><a href="help.html">Voir le guide d’installation et d’utilisation</a></div>
+    <div id="editor" hidden>
+      <div class="editor-heading"><div><span class="eyebrow">FICHE DE COLLECTE</span><h2 id="title">Commentaire</h2><p id="meta" class="muted"></p></div><div><span id="saveState" class="save-state">Enregistré</span><button id="save" class="primary">Enregistrer</button></div></div>
+      <div id="notice" class="notice" hidden></div>
+      <div class="editor-grid">
+        <div class="fields">
+          <section class="card"><div class="section-title"><span class="step-number">1</span><h3>Vérifier les faits</h3><span class="subtle-label">Modifiable</span></div>
+            <label>Nom affiché de l’auteur<input id="author" maxlength="500" autocomplete="off" placeholder="Nom tel qu’il apparaît sur Facebook"></label>
+            <label>Commentaire<textarea id="comment" rows="6" placeholder="Texte exact du commentaire"></textarea></label>
+            <label>Lien direct du commentaire<input id="commentUrl" type="url" placeholder="https://www.facebook.com/…?comment_id=…"></label>
+            <label>Lien de la publication<input id="postUrl" type="url" placeholder="https://www.facebook.com/…"></label>
+            <div class="two-columns"><label>Visibilité du contenu<select id="visibility"><option value="unverified">À vérifier</option><option value="public">Public — vérifié par moi</option><option value="restricted">Privé ou accès restreint</option></select></label><label>Catégorie choisie par vous<select id="category"><option value="">Choisir une catégorie</option><option value="hate">Incitation à la haine</option><option value="insult">Injure ou diffamation</option><option value="violence">Menaces ou incitation à la violence</option><option value="other">Autre — choisir sur PHAROS</option></select></label></div>
+            <label>Je suis la victime du signalement<select id="victim"><option value="">Choisir Oui ou Non</option><option value="yes">Oui</option><option value="no">Non</option></select></label>
+            <p class="hint">Ce choix renseigne la case correspondante sur PHAROS.</p>
+            <label>Contexte et motifs<textarea id="context" rows="4" placeholder="Expliquez les faits, la cible des propos et le contexte utile. Signalez les démarches déjà effectuées."></textarea></label>
+            <p class="hint">La catégorie est votre choix. L’extension n’évalue pas la légalité du commentaire.</p>
+          </section>
+          <section class="card"><div class="section-title"><span class="step-number">2</span><h3>Conserver les éléments</h3></div>
+            <div class="capture-heading"><p class="hint">Ajoutez une capture PNG ou JPEG, ou revenez sur Facebook et utilisez le bouton de l’extension → « Capturer la page visible ».</p><button id="addImage" class="secondary">Joindre une capture</button></div><div id="images" class="images"></div>
+            <details class="original"><summary>Consulter le relevé d’origine et son empreinte</summary><div id="sourceMeta" class="source-meta"></div><pre id="originalText"></pre><label>Empreinte SHA-256<input id="sourceHash" readonly></label><p class="hint">Le relevé d’origine reste distinct de vos corrections. Son empreinte détecte une modification ; elle ne certifie ni l’authenticité ni la date.</p></details>
+          </section>
+          <section class="card"><div class="section-title"><span class="step-number">3</span><h3>Suivre le dossier</h3></div>
+            <div class="two-columns"><label>Statut<select id="status"><option value="draft">Brouillon</option><option value="prepared">Préparé</option><option value="reported">Envoyé — déclaré par moi</option><option value="archived">Archivé</option></select></label><label>Référence de réception<input id="receipt" maxlength="1000" placeholder="À recopier après l’envoi"></label></div>
+            <label>Notes personnelles<textarea id="notes" rows="3" placeholder="Ces notes ne sont pas transférées au formulaire PHAROS."></textarea></label>
+            <div class="bottom-actions"><button id="exportOne" class="secondary">Exporter cette fiche</button><button id="print" class="quiet">Version imprimable / PDF</button><button id="delete" class="danger">Supprimer</button></div>
+          </section>
+        </div>
+        <aside class="preview-column"><section class="card preview-card"><div class="eyebrow">VOTRE SIGNALEMENT</div><h3>Prêt à être relu.</h3><p class="hint">Ce texte sera proposé au formulaire officiel.</p><textarea id="preview" class="preview-text" readonly aria-label="Aperçu du signalement"></textarea><div id="length" class="length"></div><button id="copy" class="secondary full">Copier la description</button><label class="check"><input id="custom" type="checkbox"> Personnaliser le texte complet</label><textarea id="customText" rows="8" aria-label="Description personnalisée" hidden></textarea><label class="check"><input id="autoAdvance" type="checkbox" checked> Avancer les étapes Contenu et Description quand les champs sont reconnus</label><button id="pharos" class="primary full">Préparer sur PHAROS ↗</button><p class="hint">Vous complétez vos informations personnelles puis confirmez l’envoi sur le portail officiel.</p><div class="independence">PHAROS Compagnon est un outil indépendant, sans affiliation au ministère de l’Intérieur.</div></section></aside>
+      </div>
+    </div>
+  </section>
+</main>
+<div id="toast" class="toast" role="status" hidden></div>
+<input id="importFile" type="file" accept="application/json,.json" hidden><input id="imageFile" type="file" accept="image/png,image/jpeg" hidden>
+<script type="module" src="dashboard.js"></script>
+</body></html>

@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "PHAROS Compagnon — Facebook",
+  "version": "1.0.3",
+  "minimum_chrome_version": "120",
+  "description": "Préparez vos signalements depuis les commentaires Facebook. Dossiers et captures locaux, validation personnelle sur PHAROS.",
+  "permissions": ["storage", "activeTab", "contextMenus", "unlimitedStorage"],
+  "background": { "service_worker": "background.js", "type": "module" },
+  "action": {
+    "default_title": "PHAROS Compagnon",
+    "default_popup": "popup.html",
+    "default_icon": { "16": "icons/16.png", "32": "icons/32.png", "128": "icons/128.png" }
+  },
+  "icons": { "16": "icons/16.png", "32": "icons/32.png", "48": "icons/48.png", "128": "icons/128.png" },
+  "options_page": "dashboard.html",
+  "content_security_policy": { "extension_pages": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; connect-src 'none'; base-uri 'none'" },
+  "content_scripts": [
+    {
+      "matches": ["https://www.facebook.com/*", "https://facebook.com/*", "https://m.facebook.com/*", "https://mbasic.facebook.com/*"],
+      "js": ["connectors/facebook-urls.js", "connectors/facebook.js", "facebook-content.js"],
+      "css": ["facebook-content.css"],
+      "run_at": "document_idle"
+    },
+    {
+      "matches": ["https://internet-signalement.gouv.fr/*", "https://www.internet-signalement.gouv.fr/*"],
+      "js": ["connectors/pharos.js", "pharos-content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

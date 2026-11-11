@@ -1,0 +1,23 @@
+<!doctype html><html lang="fr"><meta charset="utf-8"><title>PHAROS — fixture locale, aucun envoi</title><style>body{font:16px system-ui;max-width:750px;margin:40px auto;color:#183f32}label{display:block;padding:9px}input[type=text],textarea{display:block;width:90%;padding:10px}button{padding:10px;margin:15px}h1{font-size:25px}</style><h1>Formulaire fictif — aucun envoi</h1><div id="app"></div><script>
+window.finalClicks=0;window.informationClicks=0;
+const app=document.getElementById('app');
+function show(){
+ if(location.pathname==='/etape/contenu'){
+  app.innerHTML='<h2>1. Contenu</h2>'+[['incitation-a-la-haine','Incitation à la haine'],['injure-ou-diffamation','Injure ou diffamation'],['menaces-ou-incitation-a-la-violence','Menaces ou incitation à la violence']].map(([id,label])=>'<label><input type="radio" name="category" id="-etape-contenu_radio-button-group-input__'+id+'">'+label+'</label>').join('')+'<button disabled id="template-etape_btn__next--etape-contenu">Continuer</button>';
+  app.querySelectorAll('input').forEach(input=>input.onchange=()=>document.getElementById('template-etape_btn__next--etape-contenu').disabled=false);
+  document.getElementById('template-etape_btn__next--etape-contenu').onclick=()=>{history.pushState({},'','/etape/identifier');show();};
+ }else if(location.pathname==='/etape/identifier'){
+  app.innerHTML='<h2>2. Description</h2><label><input type="checkbox" id="identifier_checkbox__je-suis-la-victime-du-signalement">Je suis la victime du signalement</label><input type="date" id="identifier_text-input-calendar"><input type="time" id="identifier_text-input-time"><label><input type="radio" name="social" id="-etape-identifier_radio-button-group-input__sur-un-reseau-social">Sur un réseau social</label><div id="fields"></div><button disabled id="template-etape_btn__next--etape-identifier">Continuer</button>';
+  document.getElementById('-etape-identifier_radio-button-group-input__sur-un-reseau-social').onchange=()=>{
+   document.getElementById('fields').innerHTML='<h5>URL</h5><input type="text" placeholder="https://exemple.fr" maxlength="800"><h5>Commentaires</h5><textarea name="textarea" maxlength="4000" placeholder="Description détaillée des faits signalés."></textarea>';
+   app.querySelectorAll('input,textarea').forEach(input=>input.addEventListener('input',()=>{document.getElementById('template-etape_btn__next--etape-identifier').disabled=!(document.querySelector('input[type=text]').value&&document.querySelector('textarea').value);}));
+  };
+  document.getElementById('template-etape_btn__next--etape-identifier').onclick=()=>{history.pushState({},'','/etape/informations');show();};
+ }else{
+  app.innerHTML='<h2>3. Informations personnelles</h2><label>Nom<input id="personal-name" type="text"></label><button id="template-etape_btn__next--etape-informations">Continuer</button><button type="submit" id="final-submit">Envoyer le signalement</button>';
+  document.getElementById('template-etape_btn__next--etape-informations').onclick=()=>window.informationClicks++;
+  document.getElementById('final-submit').onclick=()=>window.finalClicks++;
+ }
+}
+show();
+</script></html>

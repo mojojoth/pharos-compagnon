@@ -1,0 +1,12 @@
+{
+  "name": "pharos-compagnon",
+  "version": "1.0.3",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/core.test.mjs tests/dom.test.mjs tests/facebook.test.mjs tests/pharos.test.mjs",
+    "test:browser": "node tests/browser.test.mjs"
+  },
+  "engines": { "node": ">=24" },
+  "devDependencies": { "jsdom": "31.0.0", "playwright": "1.62.1" }
+}

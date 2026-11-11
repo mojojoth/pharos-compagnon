@@ -1,0 +1,12 @@
+node_modules/
+.DS_Store
+*.log
+.env
+.env.local
+*.pem
+*.crx
+pharos-sauvegarde-*.json
+pharos-fiche-*.json
+pharos-dossier-*.html
+sauvegardes/
+captures/
