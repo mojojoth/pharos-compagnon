@@ -70,6 +70,14 @@ export async function handle(m,s) {
       r.screenshots.push(await imageFromData(m.dataUrl,{method:'attachment',sourceUrl:r.source.pageUrl}));
       r.updatedAt=new Date().toISOString();return store(r);
     });
+    case 'REMOVE_IMAGE': return serial(async()=>{
+      const r=await record(m.id);
+      if(m.expectedUpdatedAt!==r.updatedAt)throw new Error('Cette fiche a changé dans un autre onglet. Rechargez-la avant de retirer la capture.');
+      const index=r.screenshots.findIndex(image=>image.id===m.imageId);
+      if(index<0)throw new Error('Cette capture n’est plus présente dans la fiche. Rechargez la fiche.');
+      r.screenshots.splice(index,1);
+      r.updatedAt=new Date().toISOString();return store(r);
+    });
     case 'POPUP_STATE': {
       const [tab]=await chrome.tabs.query({active:true,currentWindow:true});
       const id=tab&&(await chrome.storage.session.get('last:'+tab.id))['last:'+tab.id];

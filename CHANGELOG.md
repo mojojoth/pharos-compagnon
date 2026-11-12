@@ -1,6 +1,15 @@
 # Historique des versions
 
-Cet historique décrit les versions de développement reprises dans la première publication de ce dépôt.
+Cet historique décrit les versions distribuées dans ce dépôt.
+
+## 1.0.4 — 12 novembre 2026
+
+- Retrait individuel d’une capture après confirmation, y compris lorsqu’une autre image identique est présente.
+- Ajout du bouton Enregistrer en bas de la fiche, sans retour en haut du formulaire.
+- Actualisation automatique des captures dans une fiche déjà ouverte après une capture depuis le module.
+- Vérification des nouvelles captures au retour sur l’onglet, même si un événement de mise à jour a été manqué.
+- Conservation de la saisie, du curseur et du défilement lors du retrait ou de l’actualisation des captures.
+- Maintien du contrôle des modifications concurrentes et des correctifs des versions précédentes.
 
 ## 1.0.3 — 11 novembre 2026
 
@@ -21,3 +30,4 @@ Cet historique décrit les versions de développement reprises dans la première
 - Amélioration de la récupération du nom affiché et des liens Facebook.
 - Distinction entre lien de profil, lien de commentaire et lien de publication.
 - Conservation des anciens relevés et possibilité de compléter les informations manquantes.
+

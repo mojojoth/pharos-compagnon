@@ -1,0 +1,25 @@
+PHAROS COMPAGNON — MISE À JOUR 1.0.4
+
+NOUVEAUTÉS
+
+- Un bouton Retirer sous chaque capture permet de supprimer uniquement l’image choisie, après confirmation, même en cas de doublon.
+- Un second bouton Enregistrer apparaît en bas du dossier. Il sauvegarde la fiche sans revenir en haut.
+- Les captures prises depuis le module apparaissent automatiquement dans la fiche déjà ouverte. Vous pouvez revenir directement sur son onglet, sans cliquer sur Revenir à la fiche. Le retour sur l’onglet vérifie également les nouvelles captures.
+- Retirer une capture préserve vos modifications de texte en cours. Le retrait est immédiat ; utilisez Enregistrer pour sauvegarder le texte modifié.
+- L’actualisation des captures préserve aussi le texte en cours, le curseur et la position dans la fiche.
+
+Les dossiers, les captures et les choix existants sont conservés lorsque vous mettez à jour les fichiers au même emplacement. Aucune nouvelle collecte n’est nécessaire. Les corrections précédentes de mise en page, de collecte Facebook et de la case victime PHAROS sont conservées.
+
+MISE À JOUR EN CONSERVANT LES FICHES
+
+1. Dans votre extension actuelle, ouvrez les dossiers et cliquez sur Sauvegarder.
+2. Décompressez la nouvelle archive dans un dossier temporaire.
+3. Ouvrez le sous-dossier extension de la nouvelle archive. Copiez tous les fichiers et sous-dossiers qu’il contient.
+4. Collez-les dans le sous-dossier extension que vous aviez sélectionné lors de la première installation. Acceptez le remplacement des fichiers. Le dossier installé doit garder exactement le même emplacement.
+5. Dans Chrome, ouvrez chrome://extensions. Sur PHAROS Compagnon, cliquez sur l’icône Actualiser. La version doit passer à 1.0.4.
+6. Rechargez l’onglet Mes dossiers ainsi que Facebook.
+7. Ouvrez la fiche contenant le doublon. Cliquez sur Retirer sous l’image à supprimer, puis confirmez.
+8. Le bouton Enregistrer en bas de la fiche permet maintenant de sauvegarder vos modifications de texte sans remonter.
+9. Après une capture depuis le module sur Facebook, revenez directement sur l’onglet Mes dossiers déjà ouvert : la photo apparaît dans la fiche concernée sans recharger la page.
+
+Les 56 tests fonctionnels ont été exécutés sur des données et un DOM simulés, notamment le retrait d’un doublon, l’annulation du retrait, l’enregistrement en bas de fiche et l’actualisation des captures dans un onglet déjà ouvert. Ils ne mesurent pas le rendu CSS dans Chrome. Le détail figure dans VALIDATION.md.

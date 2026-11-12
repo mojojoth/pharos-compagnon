@@ -28,7 +28,15 @@ Rouvrez PHAROS depuis la fiche si nécessaire. Le panneau propose également la 
 
 ## La liste de dossiers décale le formulaire
 
-Vérifiez que la version installée est **1.0.3**, actualisez l’extension puis rechargez l’onglet **Mes dossiers**. Le correctif sépare le défilement de la liste et du formulaire sur ordinateur. Sur écran étroit, les colonnes peuvent être empilées.
+Vérifiez que la version installée est **1.0.4**, actualisez l’extension puis rechargez l’onglet **Mes dossiers**. Le correctif sépare le défilement de la liste et du formulaire sur ordinateur. Sur écran étroit, les colonnes peuvent être empilées.
+
+## Une nouvelle capture n’apparaît pas dans la fiche déjà ouverte
+
+Vérifiez que la version installée est **1.0.4**. Après la mise à jour, actualisez l’extension et rechargez une fois les onglets Mes dossiers et Facebook pour utiliser ses nouveaux scripts. Les captures suivantes doivent apparaître automatiquement, y compris lorsque vous revenez directement sur l’onglet du dossier.
+
+## Retirer une capture en double
+
+Dans la fiche, cliquez sur **Retirer** sous l’image à supprimer puis confirmez. Seule cette capture est retirée. Si vous avez modifié le texte ou les notes, utilisez ensuite **Enregistrer**, en haut ou en bas de la fiche. Les fichiers déjà exportés restent à gérer séparément.
 
 ## Les dossiers semblent absents après une nouvelle installation
 
@@ -37,3 +45,4 @@ Vérifiez le profil Chrome et l’installation utilisée. Une nouvelle installat
 ## Signaler un problème technique
 
 Ouvrez une **Issue** avec un titre précis, les versions de Chrome et de l’extension, le système utilisé, les étapes de reproduction, le résultat attendu et le résultat observé. Utilisez un exemple fictif et anonymisez les captures. Les Issues sont publiques.
+

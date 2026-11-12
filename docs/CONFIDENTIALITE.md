@@ -1,6 +1,6 @@
 # Politique de confidentialité de PHAROS Compagnon
 
-Dernière mise à jour : **11 novembre 2026**. Version concernée : **1.0.3**.
+Dernière mise à jour : **12 novembre 2026**. Version concernée : **1.0.4**.
 
 Éditeur : **Mansour Thiam**. Les questions techniques peuvent être adressées dans la rubrique **Issues** de ce dépôt, avec des exemples fictifs et sans données personnelles. Cette rubrique est publique.
 
@@ -40,7 +40,7 @@ La suppression d’une fiche ne supprime pas les fichiers exportés précédemme
 
 ## Conservation et protection
 
-Les fiches persistent localement jusqu’à leur suppression par l’utilisateur. Aucune purge automatique des anciens dossiers n’est prévue. L’utilisateur peut consulter, exporter et supprimer chaque fiche avec ses captures depuis le tableau de bord.
+Les fiches persistent localement jusqu’à leur suppression par l’utilisateur. Aucune purge automatique des anciens dossiers n’est prévue. L’utilisateur peut consulter, exporter et supprimer chaque fiche avec ses captures depuis le tableau de bord. Il peut également retirer une capture choisie après confirmation, sans supprimer les autres images de la fiche. Le retrait ne supprime pas les copies déjà exportées.
 
 L’extension n’ajoute pas de chiffrement propre aux données locales ni aux fichiers exportés. Leur protection dépend également de la sécurité de l’appareil, du profil Chrome et du lieu de conservation des sauvegardes. L’utilisateur doit vérifier les captures et limiter les informations conservées à celles utiles à sa démarche.
 
@@ -55,3 +55,4 @@ Les données des dossiers ne sont ni vendues, ni exploitées à des fins publici
 Consulter ce dépôt, télécharger une version ou publier une Issue implique l’utilisation de GitHub, soumis à sa propre politique de confidentialité. Aucune fonction de l’extension ne publie les dossiers dans ce dépôt ou dans les Issues.
 
 Facebook, Chrome et le portail PHAROS peuvent aussi traiter des données dans le cadre de leurs services respectifs. Cette politique décrit le fonctionnement de PHAROS Compagnon et ne remplace pas les politiques de ces services.
+

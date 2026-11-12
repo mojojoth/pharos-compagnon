@@ -4,8 +4,8 @@ Cette procédure concerne Chrome pour ordinateur, version 120 ou ultérieure. L�
 
 ## Première installation
 
-1. Ouvrez la rubrique **Releases** du dépôt GitHub et choisissez **v1.0.3**.
-2. Dans **Assets**, téléchargez **Pharos-Compagnon-1.0.3.zip**.
+1. Ouvrez la rubrique **Releases** du dépôt GitHub et choisissez **v1.0.4**.
+2. Dans **Assets**, téléchargez **Pharos-Compagnon-1.0.4.zip**.
 3. Décompressez l’archive. Vous obtenez le dossier **Pharos-Compagnon**.
 4. Déplacez ce dossier dans un emplacement permanent, par exemple votre dossier Documents. Conservez-le à cet emplacement pendant l’utilisation de l’extension.
 5. Dans la barre d’adresse de Chrome, saisissez `chrome://extensions` et validez.
@@ -15,7 +15,7 @@ Cette procédure concerne Chrome pour ordinateur, version 120 ou ultérieure. L�
 9. Ouvrez le menu des extensions de Chrome et épinglez **PHAROS Compagnon**.
 10. Rechargez les onglets Facebook déjà ouverts.
 
-La version installée doit indiquer **1.0.3** dans la page des extensions. Vous pouvez ouvrir le bouton de l’extension, puis **Ouvrir mes dossiers**.
+La version installée doit indiquer **1.0.4** dans la page des extensions. Vous pouvez ouvrir le bouton de l’extension, puis **Ouvrir mes dossiers**.
 
 ## Premier dossier
 
@@ -38,6 +38,12 @@ Cette opération remplace les fichiers de l’extension ; les fiches restent dan
 
 Si vous choisissez une installation distincte ou changez de profil Chrome, conservez votre sauvegarde puis utilisez **Importer** dans la nouvelle installation. Deux installations peuvent avoir des stockages différents.
 
+## Gérer les captures dans la version 1.0.4
+
+Les captures ajoutées depuis le module apparaissent automatiquement dans la fiche correspondante déjà ouverte. Vous pouvez revenir directement sur cet onglet ; le texte que vous étiez en train de saisir et la position dans la fiche sont conservés.
+
+Sous chaque capture, **Retirer** supprime uniquement l’image choisie après confirmation. La suppression de l’image est immédiate. Les modifications de texte restent à sauvegarder avec l’un des boutons **Enregistrer**, en haut ou en bas de la fiche.
+
 ## Sauvegarder et supprimer
 
 - **Sauvegarder** exporte les dossiers au format JSON, avec leurs captures.
@@ -48,3 +54,4 @@ Si vous choisissez une installation distincte ou changez de profil Chrome, conse
 Consultez le [dépannage](DEPANNAGE.md) si une étape ne fonctionne pas.
 
 Référence sur le chargement manuel : [documentation officielle de Chrome](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked).
+

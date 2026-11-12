@@ -39,7 +39,7 @@ let main,reply;
 test('Stockage réservé aux contextes de confiance et messages non autorisés refusés',async()=>{
  await handle({type:'LIST'},uiSender);
  assert.equal(chrome.storage.local.accessLevel,'TRUSTED_CONTEXTS');assert.equal(chrome.storage.session.accessLevel,'TRUSTED_CONTEXTS');
- for(const type of ['LIST','GET','EXPORT','SAVE','DELETE','OPEN_PHAROS','CAPTURE'])await assert.rejects(()=>handle({type,id:'x'},fbSender),/refusée/);
+ for(const type of ['LIST','GET','EXPORT','SAVE','DELETE','REMOVE_IMAGE','OPEN_PHAROS','CAPTURE'])await assert.rejects(()=>handle({type,id:'x'},fbSender),/refusée/);
  await assert.rejects(()=>handle({type:'COLLECT'}, {...fbSender,url:'https://www.facebook.com.evil.test/'}),/refusée/);
  await assert.rejects(()=>handle({type:'COLLECT'}, {...fbSender,frameId:2}),/refusée/);
 });
@@ -173,7 +173,30 @@ test('PHAROS : une correction manuelle de la case victime est conservée',()=>{
  try{d.window.eval(officialAdapter);const h={expiresAt:Date.now()+10000,url:'https://www.facebook.com/post/123',description:'Texte fictif.',observedAt:'2026-11-10T10:00:00Z',victim:'yes'};const api=d.window.PharosOfficial;assert.equal(api.fill(h).ok,true);const box=d.window.document.getElementById('identifier_checkbox__je-suis-la-victime-du-signalement');box.click();const result=api.fill(h);assert.equal(result.ok,false);assert.equal(box.checked,false);assert.match(result.message,/conservée/);}
  finally{d.window.close();}
 });
-test('Tableau de bord : affichage, saisie, aperçu et sauvegarde par les contrôles réels',async()=>{
+test('Retrait d’un doublon : seule la capture choisie est supprimée',async()=>{
+ let r=await handle({type:'CREATE_MANUAL'},uiSender);const sourceHash=r.sourceHash;
+ r=await handle({type:'ADD_IMAGE',id:r.id,dataUrl:png},uiSender);r=await handle({type:'ADD_IMAGE',id:r.id,dataUrl:png},uiSender);
+ const [first,second]=r.screenshots;assert.notEqual(first.id,second.id);assert.equal(first.sha256,second.sha256);
+ r=await handle({type:'REMOVE_IMAGE',id:r.id,imageId:first.id,expectedUpdatedAt:r.updatedAt},uiSender);
+ assert.deepEqual(r.screenshots,[second]);assert.equal(r.sourceHash,sourceHash);
+ const backup=await handle({type:'EXPORT'},uiSender);assert.deepEqual(backup.records.find(x=>x.id===r.id).screenshots,[second]);
+ r=await handle({type:'REMOVE_IMAGE',id:r.id,imageId:second.id,expectedUpdatedAt:r.updatedAt},uiSender);assert.equal(r.screenshots.length,0);
+ await handle({type:'DELETE',id:r.id},uiSender);
+});
+test('Retrait de capture : version dépassée et identifiant absent ne modifient rien',async()=>{
+ let r=await handle({type:'CREATE_MANUAL'},uiSender);r=await handle({type:'ADD_IMAGE',id:r.id,dataUrl:png},uiSender);const image=r.screenshots[0];
+ await assert.rejects(()=>handle({type:'REMOVE_IMAGE',id:r.id,imageId:image.id,expectedUpdatedAt:'2000-01-01T00:00:00Z'},uiSender),/autre onglet/);
+ await assert.rejects(()=>handle({type:'REMOVE_IMAGE',id:r.id,imageId:crypto.randomUUID(),expectedUpdatedAt:r.updatedAt},uiSender),/plus présente/);
+ assert.deepEqual((await handle({type:'GET',id:r.id},uiSender)).screenshots,[image]);await handle({type:'DELETE',id:r.id},uiSender);
+});
+test('Retirer une capture libère une place dans une fiche contenant cinq images',async()=>{
+ let r=await handle({type:'CREATE_MANUAL'},uiSender);for(let i=0;i<5;i++)r=await handle({type:'ADD_IMAGE',id:r.id,dataUrl:png},uiSender);
+ await assert.rejects(()=>handle({type:'ADD_IMAGE',id:r.id,dataUrl:png},uiSender),/Cinq captures/);
+ const retained=r.screenshots.slice(1).map(i=>i.id);r=await handle({type:'REMOVE_IMAGE',id:r.id,imageId:r.screenshots[0].id,expectedUpdatedAt:r.updatedAt},uiSender);r=await handle({type:'ADD_IMAGE',id:r.id,dataUrl:png},uiSender);
+ assert.equal(r.screenshots.length,5);assert.deepEqual(r.screenshots.slice(0,4).map(i=>i.id),retained);await handle({type:'DELETE',id:r.id},uiSender);
+});
+test('Tableau de bord : captures et enregistrement sans perdre la saisie ni la position',async t=>{
+ main=await handle({type:'ADD_IMAGE',id:main.id,dataUrl:png},uiSender);
  const d=dom(await read('extension/dashboard.html'),'chrome-extension://test-extension/dashboard.html#'+main.id,uiSender);
  const previous={window:globalThis.window,document:globalThis.document,location:globalThis.location,confirm:globalThis.confirm};
  Object.assign(globalThis,{window:d.window,document:d.window.document,location:d.window.location,confirm:()=>true});
@@ -183,10 +206,54 @@ test('Tableau de bord : affichage, saisie, aperçu et sauvegarde par les contrô
   const input=d.window.document.getElementById('context');input.value='Contexte modifié par le formulaire de test.';input.dispatchEvent(new d.window.Event('input',{bubbles:true}));
   const victim=d.window.document.getElementById('victim');assert.equal(victim.value,'no');victim.value='yes';victim.dispatchEvent(new d.window.Event('input',{bubbles:true}));
   assert.match(d.window.document.getElementById('preview').value,/Contexte modifié/);
-  d.window.document.getElementById('save').click();await until(()=>d.window.document.getElementById('toast').textContent==='Fiche enregistrée.');
+  const workspace=d.window.document.querySelector('.workspace');workspace.scrollTop=600;
+  assert.equal(d.window.document.querySelectorAll('.image-remove').length,2);
+  d.window.document.getElementById('saveBottom').click();await until(()=>d.window.document.getElementById('toast').textContent==='Fiche enregistrée.');assert.equal(workspace.scrollTop,600);
   assert.equal((await handle({type:'GET',id:main.id},uiSender)).draft.context,'Contexte modifié par le formulaire de test.');
   assert.equal((await handle({type:'GET',id:main.id},uiSender)).draft.victim,'yes');
-  const workspace=d.window.document.querySelector('.workspace');workspace.scrollTop=600;
+  const notes=d.window.document.getElementById('notes');notes.value='Note en cours pendant le retrait.';notes.dispatchEvent(new d.window.Event('input',{bubbles:true}));
+  const before=await handle({type:'GET',id:main.id},uiSender);globalThis.confirm=()=>false;d.window.document.querySelector('.image-remove').click();
+  assert.equal(d.window.document.querySelectorAll('.image-remove').length,2);assert.equal((await handle({type:'GET',id:main.id},uiSender)).screenshots.length,2);
+  globalThis.confirm=()=>true;d.window.document.querySelector('.image-remove').click();await until(()=>d.window.document.querySelectorAll('.image-remove').length===1);
+  const after=await handle({type:'GET',id:main.id},uiSender);assert.equal(after.screenshots[0].id,before.screenshots[1].id);assert.equal(after.sourceHash,before.sourceHash);
+  assert.equal(notes.value,'Note en cours pendant le retrait.');assert.equal(d.window.document.getElementById('saveState').textContent,'Modifications à enregistrer');assert.equal(workspace.scrollTop,600);
+  await until(()=>d.window.document.getElementById('toast').textContent==='Capture retirée.');
+  d.window.document.getElementById('saveBottom').click();await until(()=>d.window.document.getElementById('toast').textContent==='Fiche enregistrée.');assert.equal((await handle({type:'GET',id:main.id},uiSender)).notes,'Note en cours pendant le retrait.');assert.equal(workspace.scrollTop,600);
+  const countImages=()=>d.window.document.querySelectorAll('.image-item').length;
+  const popup={id:'test-extension',url:'chrome-extension://test-extension/popup.html'};
+  activeId=1;await chrome.storage.session.set({'last:1':main.id});
+  await t.test('Capture depuis le popup : la fiche déjà ouverte affiche la photo et préserve la saisie',async()=>{
+   input.value='Contexte en cours pendant la capture.';input.dispatchEvent(new d.window.Event('input',{bubbles:true}));
+   notes.value='Note locale conservée pendant la capture.';notes.dispatchEvent(new d.window.Event('input',{bubbles:true}));notes.focus();notes.setSelectionRange(5,12);
+   workspace.scrollTop=600;d.window.document.documentElement.scrollTop=80;
+   const captured=await handle({type:'CAPTURE',id:main.id},popup);await until(()=>countImages()===captured.count);
+   assert.equal(notes.value,'Note locale conservée pendant la capture.');assert.equal(input.value,'Contexte en cours pendant la capture.');
+   assert.equal(d.window.document.activeElement,notes);assert.equal(notes.selectionStart,5);assert.equal(notes.selectionEnd,12);
+   assert.equal(d.window.document.getElementById('saveState').textContent,'Modifications à enregistrer');assert.equal(workspace.scrollTop,600);assert.equal(d.window.document.documentElement.scrollTop,80);
+   d.window.document.getElementById('saveBottom').click();await until(()=>d.window.document.getElementById('saveState').textContent==='Enregistré');
+   assert.equal((await handle({type:'GET',id:main.id},uiSender)).notes,notes.value);
+  });
+  await t.test('Retour sur l’onglet : rattrapage au focus et à la visibilité, capture d’une autre fiche isolée',async()=>{
+   const emit=onChanged.emit;
+   try{
+    onChanged.emit=(changes,area)=>{if(area!=='local')emit(changes,area);};
+    const before=countImages(),captured=await handle({type:'CAPTURE',id:main.id},popup);assert.equal(countImages(),before);
+    onChanged.emit=emit;d.window.dispatchEvent(new d.window.Event('focus'));await until(()=>countImages()===captured.count);
+    onChanged.emit=(changes,area)=>{if(area!=='local')emit(changes,area);};
+    const next=await handle({type:'CAPTURE',id:main.id},popup);assert.equal(countImages(),captured.count);
+    onChanged.emit=emit;d.window.document.dispatchEvent(new d.window.Event('visibilitychange'));await until(()=>countImages()===next.count);
+    await handle({type:'ADD_IMAGE',id:reply.id,dataUrl:png},uiSender);assert.equal(countImages(),next.count);assert.equal(d.window.document.getElementById('author').value,'Compte Exemple');
+   }finally{onChanged.emit=emit;}
+  });
+  await t.test('Modification dans un autre onglet : capture actualisée et conflit de texte conservé',async()=>{
+   notes.value='Note locale à conserver malgré le conflit.';notes.dispatchEvent(new d.window.Event('input',{bubbles:true}));
+   const latest=await handle({type:'GET',id:main.id},uiSender);
+   await handle({type:'SAVE',id:main.id,expectedUpdatedAt:latest.updatedAt,draft:{...latest.draft,context:'Contexte enregistré dans un autre onglet.'},notes:latest.notes,status:latest.status,receipt:latest.receipt},uiSender);
+   const captured=await handle({type:'CAPTURE',id:main.id},popup);await until(()=>countImages()===captured.count);
+   assert.equal(input.value,'Contexte en cours pendant la capture.');assert.equal(notes.value,'Note locale à conserver malgré le conflit.');
+   d.window.document.getElementById('saveBottom').click();await until(()=>/autre onglet/.test(d.window.document.getElementById('toast').textContent));
+   assert.equal((await handle({type:'GET',id:main.id},uiSender)).draft.context,'Contexte enregistré dans un autre onglet.');assert.equal(notes.value,'Note locale à conserver malgré le conflit.');
+  });
   const other=[...d.window.document.querySelectorAll('.record-item')].find(b=>b.querySelector('.record-author').textContent==='Compte Réponse');other.click();
   await until(()=>d.window.document.getElementById('title').textContent==='Compte Réponse');assert.equal(workspace.scrollTop,0);
  }finally{d.window.close();Object.assign(globalThis,previous);}

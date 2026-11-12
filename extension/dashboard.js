@@ -1,7 +1,7 @@
 import {description,STATUSES,evidenceHtml,facebookLinks} from './core.js';
 import {rpc,el,download,copy} from './ui.js';
 const $=id=>document.getElementById(id);
-let records=[],selected=null,dirty=false,toastTimer;
+let records=[],selected=null,dirty=false,toastTimer,removingImage=false,savingFromButton=false;
 function toast(message,error=false){$('toast').textContent=message;$('toast').classList.toggle('error',error);$('toast').hidden=false;window.clearTimeout(toastTimer);toastTimer=window.setTimeout(()=>$('toast').hidden=true,error?8000:3800);}
 function run(fn){return async()=>{try{await fn();}catch(e){toast(e.message,true);}};}
 const inputIds=['author','comment','commentUrl','postUrl','visibility','category','victim','context','notes','status','receipt','custom','customText'];
@@ -21,6 +21,47 @@ function renderList(){
   if(!filtered.length)$('list').appendChild(el('p','no-results',query||filter?'Aucun dossier correspondant.':'Vos commentaires collectés apparaîtront ici.'));
 }
 async function refresh(){records=await rpc('LIST');renderList();}
+function syncImages(record){
+  if(!selected||record?.id!==selected.id||record.updatedAt<selected.updatedAt)return;
+  const {screenshots,updatedAt,...fields}=record;
+  const {screenshots:previousImages,updatedAt:previousUpdatedAt,...previousFields}=selected;
+  // An attachment-only update can advance the version without replacing the
+  // form. A change to other saved fields must still trigger the SAVE conflict.
+  if(JSON.stringify(fields)===JSON.stringify(previousFields))selected={...selected,updatedAt};
+  if(screenshots.length===previousImages.length&&screenshots.every((image,index)=>image.id===previousImages[index].id&&image.sha256===previousImages[index].sha256))return;
+  const workspace=document.querySelector('.workspace'),page=document.scrollingElement||document.documentElement;
+  const position=workspace.scrollTop,pagePosition=page.scrollTop;
+  selected={...selected,screenshots};renderImages(selected);
+  workspace.scrollTop=position;page.scrollTop=pagePosition;
+}
+async function refreshVisibleImages(){
+  if(selected)syncImages(await rpc('GET',{id:selected.id}));
+  await refresh();
+}
+function renderImages(record){
+  $('images').replaceChildren();
+  for(const [index,image] of record.screenshots.entries()){
+    const box=el('div','image-item'),link=el('a');link.href=image.dataUrl;link.download='capture-'+image.id+(image.dataUrl.startsWith('data:image/jpeg')?'.jpg':'.png');
+    const img=el('img');img.src=image.dataUrl;img.alt='Capture jointe du '+new Date(image.at).toLocaleString('fr-FR');link.appendChild(img);
+    const remove=el('button','secondary image-remove','Retirer');remove.type='button';remove.disabled=removingImage;
+    remove.setAttribute('aria-label','Retirer la capture '+(index+1));remove.title='Retirer cette capture de la fiche';
+    remove.onclick=run(async()=>{
+      if(removingImage||selected?.id!==record.id)return;
+      if(!confirm('Retirer la capture '+(index+1)+' de cette fiche ?'))return;
+      const workspace=document.querySelector('.workspace'),position=workspace.scrollTop;
+      removingImage=true;$('images').querySelectorAll('.image-remove').forEach(b=>b.disabled=true);
+      try{
+        const updated=await rpc('REMOVE_IMAGE',{id:record.id,imageId:image.id,expectedUpdatedAt:selected.updatedAt});
+        if(selected?.id===record.id){
+          selected={...selected,screenshots:updated.screenshots,updatedAt:updated.updatedAt};
+          renderImages(selected);workspace.scrollTop=position;
+        }
+        await refresh();toast('Capture retirée.');
+      }finally{removingImage=false;$('images').querySelectorAll('.image-remove').forEach(b=>b.disabled=false);}
+    });
+    box.append(link,el('span','',new Date(image.at).toLocaleString('fr-FR')),remove);$('images').appendChild(box);
+  }
+}
 async function select(id,force=false){
   if(dirty&&!force&&!confirm('Quitter cette fiche sans enregistrer vos modifications ?'))return;
   const recordChanged=selected?.id!==id;
@@ -43,8 +84,7 @@ async function select(id,force=false){
   $('originalText').textContent=r.source.commentText||'Aucun texte relevé automatiquement.';$('sourceHash').value=r.sourceHash;
   $('sourceMeta').replaceChildren();
   for(const [label,value] of [['Nom affiché',r.source.author],['Commentaire',r.source.commentUrl],['Publication',r.source.postUrl],['Page consultée',r.source.pageUrl],['Date affichée',r.source.displayedDate],['Méthode',r.source.captureMethod]])$('sourceMeta').appendChild(el('p','',label+' : '+(value||'Non relevé')));
-  $('images').replaceChildren();
-  for(const image of r.screenshots){const box=el('div','image-item'),link=el('a');link.href=image.dataUrl;link.download='capture-'+image.id+(image.dataUrl.startsWith('data:image/jpeg')?'.jpg':'.png');const img=el('img');img.src=image.dataUrl;img.alt='Capture jointe du '+new Date(image.at).toLocaleString('fr-FR');link.appendChild(img);box.append(link,el('span','',new Date(image.at).toLocaleString('fr-FR')));$('images').appendChild(box);}
+  renderImages(r);
   renderList();updatePreview();
   if(recordChanged)document.querySelector('.workspace').scrollTop=0;
 }
@@ -56,7 +96,14 @@ async function save(){
 async function createManual(){if(dirty&&!confirm('Quitter sans enregistrer les modifications ?'))return;const r=await rpc('CREATE_MANUAL');await refresh();await select(r.id,true);$('comment').focus();}
 for(const id of inputIds)$(id).addEventListener('input',()=>{if(id==='custom'&&$('custom').checked&&!$('customText').value)$('customText').value=description({...selected,draft:{...edited().draft,customDescription:false}});changed();});
 $('search').addEventListener('input',renderList);$('filter').addEventListener('change',renderList);
-$('new').onclick=run(createManual);$('emptyNew').onclick=run(createManual);$('save').onclick=run(async()=>{await save();toast('Fiche enregistrée.');});
+$('new').onclick=run(createManual);$('emptyNew').onclick=run(createManual);
+const saveFromButton=run(async()=>{
+  if(savingFromButton)return;
+  savingFromButton=true;$('save').disabled=true;$('saveBottom').disabled=true;
+  try{await save();toast('Fiche enregistrée.');}
+  finally{savingFromButton=false;$('save').disabled=false;$('saveBottom').disabled=false;}
+});
+$('save').onclick=saveFromButton;$('saveBottom').onclick=saveFromButton;
 $('copy').onclick=run(async()=>{await copy($('preview').value);toast('Description copiée.');});
 $('pharos').onclick=run(async()=>{await save();await rpc('OPEN_PHAROS',{id:selected.id,autoAdvance:$('autoAdvance').checked});toast('Brouillon ouvert sur le portail officiel.');});
 $('exportAll').onclick=run(async()=>{await save();const backup=await rpc('EXPORT');download('pharos-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(backup,null,2),'application/json');toast('Sauvegarde téléchargée. Conservez-la avant de retirer l’extension.');});
@@ -69,5 +116,12 @@ $('imageFile').onchange=run(async()=>{const file=$('imageFile').files[0];$('imag
 $('delete').onclick=run(async()=>{if(!selected||!confirm('Supprimer définitivement cette fiche et ses captures ? Exportez-la d’abord si vous souhaitez la conserver.'))return;await rpc('DELETE',{id:selected.id});selected=null;dirty=false;location.hash='';await refresh();if(records.length)await select(records[0].id,true);else{$('editor').hidden=true;$('empty').hidden=false;}toast('Fiche supprimée.');});
 document.addEventListener('keydown',event=>{if((event.metaKey||event.ctrlKey)&&event.key==='s'){event.preventDefault();run(save)();}});
 window.addEventListener('beforeunload',e=>{if(dirty){e.preventDefault();e.returnValue='';}});
-chrome.storage.onChanged.addListener((_changes,area)=>{if(area==='local')refresh().catch(e=>toast(e.message,true));});
+chrome.storage.onChanged.addListener((changes,area)=>{
+  if(area!=='local')return;
+  const record=selected&&changes['record:'+selected.id]?.newValue;
+  if(record)syncImages(record);
+  refresh().catch(e=>toast(e.message,true));
+});
+window.addEventListener('focus',run(refreshVisibleImages));
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')run(refreshVisibleImages)();});
 run(async()=>{await refresh();const id=location.hash.slice(1);if(id)try{await select(id,true);}catch(e){toast(e.message,true);}else if(records.length)await select(records[0].id,true);})();

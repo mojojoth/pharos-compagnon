@@ -50,6 +50,14 @@ Le schéma d’export reste en version 1. Les anciens relevés et leurs empreint
 
 ## Développement
 
+### Retrait de captures et enregistrement en bas de fiche (1.0.4)
+
+Chaque capture possède un bouton Retirer. Après confirmation, le tableau de bord envoie `REMOVE_IMAGE` avec l’identifiant de la fiche, l’identifiant unique de l’image et la version de la fiche. Le worker réserve cette action aux pages de l’extension et la sérialise avec les autres écritures. Il refuse une version dépassée ou un identifiant absent. Le retrait vise l’identifiant de l’image, jamais son empreinte : deux captures identiques peuvent donc être gérées séparément. Le relevé d’origine et son empreinte ne changent pas.
+
+L’interface actualise seulement les miniatures, la date de modification et la liste de dossiers. Elle conserve les champs en cours de saisie et leur état à enregistrer. Le retrait est enregistré immédiatement. Les boutons Enregistrer du haut et du bas partagent le même gestionnaire ; ils sauvegardent les modifications de texte sans recharger l’éditeur ni réinitialiser son défilement. Les formats d’export et les permissions restent identiques.
+
+Les événements `chrome.storage.onChanged` actualisent désormais les captures de la fiche sélectionnée, en plus de la liste. Un retour au premier plan (`focus` ou `visibilitychange` vers `visible`) relit aussi la fiche pour rattraper un événement manqué. Seules les miniatures sont reconstruites : les champs, le curseur, l’état des modifications et le défilement sont conservés. Une capture concernant un autre dossier ne change pas la fiche affichée. La version locale n’avance automatiquement que si tous les champs enregistrés hors captures sont identiques ; une modification de texte provenant d’un autre onglet reste protégée par le contrôle de version de SAVE.
+
 ### Mise en page du tableau de bord (1.0.3)
 
 Le centrage vertical provenait de `margin:auto` sur `.workspace`, dans la même ligne de grille que la liste dont la hauteur augmentait. Le formulaire utilise désormais `margin:0 auto` et `align-self:start`. Sur ordinateur, la ligne de grille occupe la hauteur de la fenêtre sous l’en-tête. `.record-list` et `.workspace` disposent de défilements distincts ; `min-height:0` autorise la réduction des éléments flex/grid au lieu d’agrandir le document. L’en-tête, la recherche et le filtre gardent leur place dans la colonne de gauche. Au changement de dossier, le formulaire est ramené en haut. Le media query existant à 760 px rétablit le flux vertical du document avec une liste de hauteur limitée.
